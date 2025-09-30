@@ -1,1 +1,6 @@
-spring.application.name=study-project-backend
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/study_project_demo1?useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: 20041114Liuyu!
