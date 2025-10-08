@@ -1,30 +1,63 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
+import {Lock, User} from '@element-plus/icons-vue'
 </script>
 
 <template>
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
+  <div style="width: 100vw;height: 100vh;overflow: hidden;display: flex">
+    <div style="flex: 1">
+      <el-image
+          src="https://images.pexels.com/photos/2387873/pexels-photo-2387873.jpeg"/>
+    </div>
+    <div style="width: 600px;background-color: white">
+      <div style="text-align:center;margin: 0 20px">
+        <div style="text-align: center;margin-top: 150px">
+          <div style="font-size: 25px;font-weight: bold">登录</div>
+          <div style="font-size: 14px;color: grey">在进入系统之前请先输入用户名和密码进行登录</div>
+        </div>
+        <div style="margin-top: 50px">
+          <el-input type="text" placeholder="用户名/邮箱">
+            <template #prefix>
+              <el-icon>
+                <User/>
+              </el-icon>
+            </template>
+          </el-input>
+          <el-input type="password" style="margin-top:10px" placeholder="密码">
+            <template #prefix>
+              <el-icon>
+                <lock/>
+              </el-icon>
+            </template>
+          </el-input>
+        </div>
+
+        <el-row style="margin-top: 5px">
+          <el-col :span="12" style="text-align: left">
+            <el-checkbox v-model="checked1" label="记住我"/>
+          </el-col>
+
+          <el-col :span="12" style="text-align: right">
+            <el-link>忘记密码?</el-link>
+          </el-col>
+        </el-row>
+
+        <div style="margin-top: 40px">
+          <el-button style="width: 270px" type="success" plain>立即登录</el-button>
+        </div>
+
+        <el-divider>
+          <span style="color: grey;font-size: 14px">没有账号</span>
+        </el-divider>
+
+        <div>
+          <el-button style="width: 270px" type="warning" plain>注册账号</el-button>
+        </div>
+      </div>
+    </div>
   </div>
-  <HelloWorld msg="Vite + Vue" />
+
 </template>
 
 <style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
-}
+
 </style>
