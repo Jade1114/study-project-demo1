@@ -19,6 +19,9 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.io.IOException;
 
@@ -42,13 +45,29 @@ public class SecurityConfiguration {
                 )
                 .logout(logout -> logout
                         .logoutUrl("/api/auth/logout")
+                        .logoutSuccessHandler(this::onAuthenticationSuccess)
                 )
+                .cors(httpSecurityCorsConfigurer -> {
+                    httpSecurityCorsConfigurer.configurationSource(this.corsConfigurationSource());
+                })
                 .exceptionHandling(exception ->
                         exception.authenticationEntryPoint(this::onAuthenticationFailure)
                 )
                 .csrf(csrf -> csrf.disable());
 
         return http.build();
+    }
+
+    private CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration cors = new CorsConfiguration();
+        cors.addAllowedOriginPattern("*"); // 仅个人开发允许所有跨域请求
+        cors.setAllowCredentials(true);
+        cors.addAllowedHeader("*");
+        cors.addAllowedMethod("*");
+        cors.addExposedHeader("*");
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", cors);
+        return source;
     }
 
     // Spring Security 6 推荐这样写，而不是直接从 HttpSecurity 拿 AuthenticationManagerBuilder
@@ -73,7 +92,12 @@ public class SecurityConfiguration {
     // 登录成功
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         response.setCharacterEncoding("UTF-8");
-        response.getWriter().write(JSONObject.toJSONString(RestBean.success("登录成功")));
+        if (request.getRequestURI().endsWith("/login")) {
+            response.getWriter().write(JSONObject.toJSONString(RestBean.success("登录成功")));
+        }else if(request.getRequestURI().endsWith("/logout")){
+            response.getWriter().write(JSONObject.toJSONString(RestBean.success("退出登录成功")));
+
+        }
     }
 
     // 登录失败 / 未认证访问受保护资源
