@@ -11,10 +11,12 @@
       <div style="font-size: 30px;font-weight: bold">欢迎来到我们的学习平台</div>
       <div style="margin-top: 10px;">在这里你可以学习Java</div>
     </div>
-    <div style="width: 600px;background-color: white">
-      <transition name="el-fade-in-linear">
-        <router-view/>
-      </transition>
+    <div style="width: 600px;background-color: white;z-index: 1">
+      <router-view v-slot="{ Component }">
+        <transition name="el-fade-in-linear" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
     </div>
   </div>
 </template>
