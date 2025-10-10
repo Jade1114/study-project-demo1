@@ -70,7 +70,7 @@ const login = () => {
     </el-divider>
 
     <div>
-      <el-button style="width: 270px" type="warning" plain>注册账号</el-button>
+      <el-button  style="width: 270px" @click="router.push('/register')" type="warning" plain>注册账号</el-button>
     </div>
   </div>
 </template>

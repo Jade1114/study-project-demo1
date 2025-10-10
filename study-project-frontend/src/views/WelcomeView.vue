@@ -12,7 +12,9 @@
       <div style="margin-top: 10px;">在这里你可以学习Java</div>
     </div>
     <div style="width: 600px;background-color: white">
-      <router-view/>
+      <transition name="el-fade-in-linear">
+        <router-view/>
+      </transition>
     </div>
   </div>
 </template>
