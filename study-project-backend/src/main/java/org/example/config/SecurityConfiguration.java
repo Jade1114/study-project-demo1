@@ -33,7 +33,7 @@ import java.io.IOException;
 public class SecurityConfiguration {
 
     @Resource
-    AuthorizeService authorizeService;
+    AuthorizeService  authorizeService;
 
     @Resource
     DataSource dataSource;
@@ -42,6 +42,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

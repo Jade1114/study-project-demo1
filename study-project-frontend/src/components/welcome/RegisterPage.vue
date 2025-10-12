@@ -2,6 +2,9 @@
 import {EditPen, Lock, Message, User} from "@element-plus/icons-vue";
 import router from "@/router";
 import {reactive, ref} from "vue";
+import {post} from "@/net/index.js";
+
+const formRef = ref()
 
 const form = reactive({
   username: '',
@@ -21,20 +24,20 @@ const validateUsername = (rule, value, callback) => {
   }
 }
 
-const validatePassword = (rule,value,callback) => {
-  if(value === ''){
+const validatePassword = (rule, value, callback) => {
+  if (value === '') {
     callback(new Error('请再次输入密码'))
-  }else if(value !== form.password){
+  } else if (value !== form.password) {
     callback(new Error('两次输入的密码不一致'))
-  }else{
+  } else {
     callback()
   }
 }
 
 const isEmailValid = ref(false)
 
-const onValidate = (prop,isValid) =>{
-  if(prop === 'email')
+const onValidate = (prop, isValid) => {
+  if (prop === 'email')
     isEmailValid.value = isValid
 }
 
@@ -44,21 +47,42 @@ const rules = {
     {min: 2, max: 8, message: '用户名的长度必须在2-8个字符之间', trigger: ['blur', 'change']},
   ],
   password: [
-    {required: true,message:'请输入密码',trigger:'blur'},
+    {required: true, message: '请输入密码', trigger: 'blur'},
     {min: 6, max: 16, message: '密码的长度必须在6-16s个字符之间', trigger: ['blur', 'change']},
   ],
-  password_repeat:[
-    {validator: validatePassword,trigger:['blur','change']}
+  password_repeat: [
+    {validator: validatePassword, trigger: ['blur', 'change']}
   ],
-  email:[
-    {required: true,message:'请输入电子邮件',trigger:['blur']},
-    {type: 'email',
-      message: '请输入合法的电子邮件地址',trigger:['blur','change']
+  email: [
+    {required: true, message: '请输入电子邮件', trigger: ['blur']},
+    {
+      type: 'email',
+      message: '请输入合法的电子邮件地址', trigger: ['blur', 'change']
     }
   ],
-  code:[
-
+  code: [
+    {required: true, message: '请输入验证码', trigger: ['blur']}
   ]
+}
+
+
+
+const register = () => {
+  formRef.value.validate((isValid) => {
+    if (isValid) {
+
+    } else {
+      ElMessage.warning('请完整填写注册表单内容!')
+    }
+  })
+}
+
+const validateEmail = () => {
+  post('api/auth/valid-email',{
+    email: form.email
+  }, (message) =>{
+    ElMessage.success(message)
+  })
 }
 
 </script>
@@ -70,7 +94,7 @@ const rules = {
       <div style="font-size: 14px;color: grey">欢迎注册我们的学习平台，请在下面填写相关信息</div>
     </div>
     <div style="margin-top: 50px">
-      <el-form :model="form" :rules="rules" @validate="onValidate">
+      <el-form :model="form" :rules="rules" @validate="onValidate" ref="formRef">
         <el-form-item prop="username">
           <el-input v-model="form.username" type="text" placeholder="用户名">
             <template #prefix>
@@ -107,29 +131,30 @@ const rules = {
             </template>
           </el-input>
         </el-form-item>
+        <el-form-item prop="code">
+          <el-row :gutter="10">
+            <el-col :span="18">
+              <el-input v-model="form.code" type="text" placeholder="请输入验证码">
+                <template #prefix>
+                  <el-icon>
+                    <EditPen/>
+                  </el-icon>
+                </template>
+              </el-input>
+            </el-col>
+            <el-col :span="6">
+              <el-button type="success" plain :disabled="!isEmailValid" @click="validateEmail()">
+                获取验证码
+              </el-button>
+            </el-col>
+          </el-row>
+        </el-form-item>
       </el-form>
-      <el-form-item>
-        <el-row :gutter="10">
-          <el-col :span="18">
-            <el-input v-model="form.code" type="text" placeholder="请输入验证码">
-              <template #prefix>
-                <el-icon>
-                  <EditPen/>
-                </el-icon>
-              </template>
-            </el-input>
-          </el-col>
-          <el-col :span="6">
-            <el-button type="success" plain :disabled="!isEmailValid">
-              获取验证码
-            </el-button>
-          </el-col>
-        </el-row>
-      </el-form-item>
+
 
     </div>
     <div style="margin-top: 80px">
-      <el-button style="width: 270px" type="warning" plain>
+      <el-button style="width: 270px" type="warning" plain @click="register()">
         立即注册
       </el-button>
     </div>
