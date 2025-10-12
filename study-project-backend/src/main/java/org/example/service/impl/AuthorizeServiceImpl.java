@@ -12,6 +12,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
@@ -32,6 +33,8 @@ public class AuthorizeServiceImpl implements AuthorizeService {
     @Resource
     StringRedisTemplate  stringRedisTemplate;
 
+    BCryptPasswordEncoder bCryptPasswordEncoder =  new BCryptPasswordEncoder();
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         if (username == null) {
@@ -51,11 +54,14 @@ public class AuthorizeServiceImpl implements AuthorizeService {
     }
 
     @Override
-    public boolean sendValidateEmail(String email, String sessionId) {
+    public String sendValidateEmail(String email, String sessionId) {
         String key = "email:" + sessionId + ":" + email;
         if(stringRedisTemplate.hasKey(key)) {
             Long expire = stringRedisTemplate.getExpire(key, TimeUnit.SECONDS);
-            if (expire > 120) return false;
+            if (expire > 120) return "请求频繁，请稍后再试";
+        }
+        if(userMapper.findAccountByNameOrEmail(email) != null){
+            return "此邮箱已被注册";
         }
         Random random = new Random();
         int code = random.nextInt(900000) + 100000;
@@ -66,12 +72,34 @@ public class AuthorizeServiceImpl implements AuthorizeService {
         message.setText("验证码是: " + code);
         try {
             mailSender.send(message);
-
             stringRedisTemplate.opsForValue().set(key,String.valueOf(code),3, TimeUnit.MINUTES);
-            return true;
+            return null;
         } catch (MailException e) {
             e.printStackTrace();
-            return false;
+            return "邮件发送失败，请检查邮件地址是否有效";
+        }
+    }
+
+    @Override
+    public String validateAndRegister(String username, String password, String email, String code,String sessionId) {
+        String key = "email:" + sessionId + ":" + email;
+        if(stringRedisTemplate.hasKey(key)) {
+            String s = stringRedisTemplate.opsForValue().get(key);
+            if (s == null) {
+                return "验证码失效，请重新请求";
+            }
+            if (s.equals(code)) {
+                password = bCryptPasswordEncoder.encode(password);
+                if(userMapper.createAccount(username,password,email) > 0){
+                    return null;
+                }else{
+                    return "内部错误，请联系管理员";
+                }
+            }else{
+                return "验证码错误，请检查后再提交";
+            }
+        }else{
+            return "请先获取验证码";
         }
     }
 }
