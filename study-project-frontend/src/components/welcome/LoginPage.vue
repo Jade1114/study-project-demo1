@@ -1,5 +1,5 @@
 <script setup>
-import { User, Lock } from '@element-plus/icons-vue'
+import {User, Lock} from '@element-plus/icons-vue'
 import {post} from "@/net"
 import {ElMessage} from "element-plus"
 import {reactive} from "vue";
@@ -13,14 +13,14 @@ const form = reactive({
 })
 
 const login = () => {
-  if(!form.username || !form.password){
+  if (!form.username || !form.password) {
     ElMessage.warning('请填写用户名和密码! ')
-  }else{
+  } else {
     post('/api/auth/login', {
       username: form.username,
       password: form.password,
       remember: form.remember
-    },(message)=>{
+    }, (message) => {
       ElMessage.success(message)
       router.push('/index')
     })
@@ -57,7 +57,7 @@ const login = () => {
       </el-col>
 
       <el-col :span="12" style="text-align: right">
-        <el-link>忘记密码?</el-link>
+        <el-link @click="router.push('/forget')">忘记密码?</el-link>
       </el-col>
     </el-row>
 
@@ -70,7 +70,7 @@ const login = () => {
     </el-divider>
 
     <div>
-      <el-button  style="width: 270px" @click="router.push('/register')" type="warning" plain>注册账号</el-button>
+      <el-button style="width: 270px" @click="router.push('/register')" type="warning" plain>注册账号</el-button>
     </div>
   </div>
 </template>
