@@ -1,13 +1,22 @@
 <script setup>
 import {reactive, ref} from "vue";
 import {EditPen, Lock, Message} from "@element-plus/icons-vue";
+import {post} from "@/net/index.js";
+import router from "@/router/index.js";
 
 const active = ref(0)
 
 const form = reactive({
   email: '',
   code: '',
+  password: '',
+  password_repeat: '',
 })
+
+const formRef = ref()
+const isEmailValid = ref(false)
+const coldTime = ref(0)
+
 
 const validatePassword = (rule, value, callback) => {
   if (value === '') {
@@ -38,90 +47,137 @@ const rules = {
     {required: true, message: '请输入验证码', trigger: ['blur']}
   ]
 }
+
+const validateEmail = () => {
+  post('api/auth/valid-reset-email', {
+    email: form.email
+  }, (message) => {
+    ElMessage.success(message)
+    coldTime.value = 60
+    setInterval(() => coldTime.value--, 1000)
+  })
+}
+
+const onValidate = (prop, isValid) => {
+  if (prop === 'email')
+    isEmailValid.value = isValid
+}
+
+const startReset = () => {
+  formRef.value.validate((isValid) => {
+    if (isValid) {
+      post('/api/auth/start-reset', {
+        email: form.email,
+        code: form.code
+      }, () => {
+        active.value++
+      })
+    } else {
+      ElMessage.warning('请完整填写表单内容!')
+    }
+  })
+}
+
+const doReset = () => {
+  formRef.value.validate((isValid) => {
+    if (isValid) {
+      post('/api/auth/do-reset', {
+        password: form.password
+      }, (message) => {
+        ElMessage.success(message)
+        router.push('/')
+      })
+    } else {
+      ElMessage.warning('请填写新的密码')
+    }
+  })
+}
 </script>
 
 <template>
-  <div style="margin: 30px 20px;width: 100%">
-    <el-steps :active="active" finish-status="success" align-center>
-      <el-step title="验证电子邮件"/>
-      <el-step title="重新设定密码"/>
-    </el-steps>
+  <div>
+    <div style="margin: 30px 20px;width: 100%">
+      <el-steps :active="active" finish-status="success" align-center>
+        <el-step title="验证电子邮件"/>
+        <el-step title="重新设定密码"/>
+      </el-steps>
+    </div>
+    <transition name="el-fade-in-linear" mode="out-in">
+      <div style="text-align:center;margin: 0 20px;height: 100%" v-if="active === 0">
+        <div style="text-align: center;margin-top: 80px">
+          <div style="font-size: 25px;font-weight: bold">重置密码</div>
+          <div style="font-size: 14px;color: grey">请输入需要重置密码的邮件地址</div>
+        </div>
+        <div style="margin-top: 50px">
+          <el-form :model="form" :rules="rules" @validate="onValidate" ref="formRef">
+            <el-form-item prop="email">
+              <el-input v-model="form.email" type="text" placeholder="电子邮箱地址">
+                <template #prefix>
+                  <el-icon>
+                    <Message/>
+                  </el-icon>
+                </template>
+              </el-input>
+            </el-form-item>
+            <el-form-item prop="code" style="width: 100%">
+              <el-row :gutter="10">
+                <el-col :span="18">
+                  <el-input v-model="form.code" :maxlength="6" type="text" placeholder="请输入验证码">
+                    <template #prefix>
+                      <el-icon>
+                        <EditPen/>
+                      </el-icon>
+                    </template>
+                  </el-input>
+                </el-col>
+                <el-col :span="6">
+                  <el-button type="success" plain :disabled="!isEmailValid || coldTime > 0" @click="validateEmail()">
+                    {{ coldTime > 0 ? '请稍后' + coldTime + '秒' : '获取验证码' }}
+                  </el-button>
+                </el-col>
+              </el-row>
+            </el-form-item>
+          </el-form>
+        </div>
+        <div style="margin-top: 70px">
+          <el-button @click="startReset()" style="width: 270px; " type="danger" plain>验证</el-button>
+        </div>
+      </div>
+    </transition>
+    <transition name="el-fade-in-linear" mode="out-in">
+      <div style="text-align:center;margin: 0 20px;height: 100%" v-if="active === 1">
+        <div style="text-align: center;margin-top: 80px">
+          <div style="font-size: 25px;font-weight: bold">重置密码</div>
+          <div style="font-size: 14px;color: grey">请输入您的新密码，务必牢记，避免丢失</div>
+        </div>
+        <div style="margin-top: 50px">
+          <el-form :model="form" :rules="rules" @validate="onValidate" ref="formRef">
+            <el-form-item prop="password">
+              <el-input v-model="form.password" :maxlength="16" type="password" placeholder="新密码">
+                <template #prefix>
+                  <el-icon>
+                    <Lock/>
+                  </el-icon>
+                </template>
+              </el-input>
+            </el-form-item>
+            <el-form-item prop="password_repeat">
+              <el-input v-model="form.password_repeat" :maxlength="16" type="password" placeholder="重复新密码">
+                <template #prefix>
+                  <el-icon>
+                    <Lock/>
+                  </el-icon>
+                </template>
+              </el-input>
+            </el-form-item>
+          </el-form>
+        </div>
+        <div style="margin-top: 70px">
+          <el-button @click="doReset()" style="width: 270px; " type="danger" plain>重置密码</el-button>
+        </div>
+      </div>
+    </transition>
   </div>
-  <transition name="el-fade-in-linear" mode="out-in">
-    <div style="text-align:center;margin: 0 20px;height: 100%" v-if="active === 0">
-      <div style="text-align: center;margin-top: 80px">
-        <div style="font-size: 25px;font-weight: bold">重置密码</div>
-        <div style="font-size: 14px;color: grey">请输入需要重置密码的邮件地址</div>
-      </div>
-      <div style="margin-top: 50px">
-        <el-form :model="form" :rules="rules" @validate="onValidate" ref="formRef">
-          <el-form-item prop="email">
-            <el-input v-model="form.email" type="email" placeholder="电子邮箱地址">
-              <template #prefix>
-                <el-icon>
-                  <Message/>
-                </el-icon>
-              </template>
-            </el-input>
-          </el-form-item>
-          <el-form-item prop="code" style="width: 100%">
-            <el-row :gutter="10">
-              <el-col :span="18">
-                <el-input v-model="form.code" :maxlength="6" type="text" placeholder="请输入验证码">
-                  <template #prefix>
-                    <el-icon>
-                      <EditPen/>
-                    </el-icon>
-                  </template>
-                </el-input>
-              </el-col>
-              <el-col :span="6">
-                <el-button type="success" plain :disabled="!isEmailValid || coldTime > 0" @click="validateEmail()">
-                  {{ coldTime > 0 ? '请稍后' + coldTime + '秒' : '获取验证码' }}
-                </el-button>
-              </el-col>
-            </el-row>
-          </el-form-item>
-        </el-form>
-      </div>
-      <div style="margin-top: 70px">
-        <el-button @click="active=1" style="width: 270px; " type="danger" plain>验证</el-button>
-      </div>
-    </div>
-  </transition>
-  <transition name="el-fade-in-linear" mode="out-in">
-    <div style="text-align:center;margin: 0 20px;height: 100%" v-if="active === 1">
-      <div style="text-align: center;margin-top: 80px">
-        <div style="font-size: 25px;font-weight: bold">重置密码</div>
-        <div style="font-size: 14px;color: grey">请输入您的新密码，务必牢记，避免丢失</div>
-      </div>
-      <div style="margin-top: 50px">
-        <el-form :model="form" :rules="rules" @validate="onValidate" ref="formRef">
-          <el-form-item prop="password">
-            <el-input v-model="form.password" :maxlength="16" type="password" placeholder="密码">
-              <template #prefix>
-                <el-icon>
-                  <Lock/>
-                </el-icon>
-              </template>
-            </el-input>
-          </el-form-item>
-          <el-form-item prop="password_repeat">
-            <el-input v-model="form.password_repeat" :maxlength="16" type="password" placeholder="重复密码">
-              <template #prefix>
-                <el-icon>
-                  <Lock/>
-                </el-icon>
-              </template>
-            </el-input>
-          </el-form-item>
-        </el-form>
-      </div>
-      <div style="margin-top: 70px">
-        <el-button @click="" style="width: 270px; " type="danger" plain>重置密码</el-button>
-      </div>
-    </div>
-  </transition>
 </template>
 <style scoped>
 

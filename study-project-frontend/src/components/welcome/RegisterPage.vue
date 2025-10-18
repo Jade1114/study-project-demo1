@@ -37,7 +37,6 @@ const validatePassword = (rule, value, callback) => {
 }
 
 
-
 const onValidate = (prop, isValid) => {
   if (prop === 'email')
     isEmailValid.value = isValid
@@ -68,16 +67,15 @@ const rules = {
 }
 
 
-
 const register = () => {
   formRef.value.validate((isValid) => {
     if (isValid) {
-      post("api/auth/register",{
+      post("api/auth/register", {
         username: form.username,
         password: form.password,
         email: form.email,
         code: form.code
-      },(message) =>{
+      }, (message) => {
         ElMessage.success(message)
         router.push('/')
       })
@@ -88,12 +86,12 @@ const register = () => {
 }
 
 const validateEmail = () => {
-  post('api/auth/valid-email',{
+  post('api/auth/valid-email', {
     email: form.email
-  }, (message) =>{
+  }, (message) => {
     ElMessage.success(message)
     coldTime.value = 60
-    setInterval(() => coldTime.value--,1000)
+    setInterval(() => coldTime.value--, 1000)
   })
 }
 
@@ -135,7 +133,7 @@ const validateEmail = () => {
           </el-input>
         </el-form-item>
         <el-form-item prop="email">
-          <el-input v-model="form.email" type="email" placeholder="电子邮箱地址">
+          <el-input v-model="form.email" type="text" placeholder="电子邮箱地址">
             <template #prefix>
               <el-icon>
                 <Message/>
@@ -156,7 +154,7 @@ const validateEmail = () => {
             </el-col>
             <el-col :span="6">
               <el-button type="success" plain :disabled="!isEmailValid || coldTime > 0" @click="validateEmail()">
-                {{ coldTime > 0 ? '请稍后' + coldTime + '秒' : '获取验证码'}}
+                {{ coldTime > 0 ? '请稍后' + coldTime + '秒' : '获取验证码' }}
               </el-button>
             </el-col>
           </el-row>
