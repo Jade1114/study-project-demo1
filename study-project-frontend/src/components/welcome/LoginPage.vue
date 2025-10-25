@@ -1,10 +1,13 @@
 <script setup>
 import {User, Lock} from '@element-plus/icons-vue'
-import {post} from "@/net"
+import {get, post} from "@/net"
 import {ElMessage} from "element-plus"
 import {reactive} from "vue";
 import router from "@/router";
+import {useStore} from "@/stores/index.js";
 
+
+const store = useStore()
 
 const form = reactive({
   username: '',
@@ -22,7 +25,13 @@ const login = () => {
       remember: form.remember
     }, (message) => {
       ElMessage.success(message)
-      router.push('/index')
+      get('/api/user/me', (user) => {
+            store.setUser(user)
+            router.push('/index')
+          }, () => {
+            store.clearUser()
+          }
+      )
     })
   }
 }
@@ -45,7 +54,7 @@ const login = () => {
       <el-input v-model="form.password" type="password" style="margin-top:10px" placeholder="密码">
         <template #prefix>
           <el-icon>
-            <lock/>
+            <Lock/>
           </el-icon>
         </template>
       </el-input>

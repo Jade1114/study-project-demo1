@@ -1,7 +1,7 @@
 package org.example.service.impl;
 
 import jakarta.annotation.Resource;
-import org.example.entity.Account;
+import org.example.entity.auth.Account;
 import org.example.mapper.UserMapper;
 import org.example.service.AuthorizeService;
 import org.springframework.beans.factory.annotation.Value;

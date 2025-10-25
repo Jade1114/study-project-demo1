@@ -8,6 +8,7 @@ import org.example.entity.RestBean;
 import org.example.service.AuthorizeService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -43,6 +44,7 @@ public class SecurityConfiguration {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -82,11 +84,10 @@ public class SecurityConfiguration {
 
     private CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cors = new CorsConfiguration();
-        cors.addAllowedOriginPattern("*"); // 仅个人开发允许所有跨域请求
-        cors.setAllowCredentials(true);
+        cors.addAllowedOrigin("http://localhost:5173"); // ✅ 写你的前端地址
+        cors.setAllowCredentials(true);                 // ✅ 允许 Cookie
         cors.addAllowedHeader("*");
         cors.addAllowedMethod("*");
-        cors.addExposedHeader("*");
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cors);
         return source;

@@ -23,7 +23,7 @@ public class AuthorizeController {
     @Resource
     AuthorizeService authorizeService;
 
-    @PostMapping("/valid-email")
+    @PostMapping("/valid-register-email")
     public RestBean<String> validateRegisterEmail(@Pattern(regexp = EAMIL_REGEX) @RequestParam("email") String email, HttpSession session) {
         String s = authorizeService.sendValidateEmail(email, session.getId(), false);
         if (s == null) {
